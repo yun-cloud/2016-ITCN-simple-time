@@ -31,6 +31,8 @@ int main() {
   time_t ticks;                 // store current time
   int write_bytes;              // number of byte, return by `write()`
   char buf[MAX_SIZE];           // buffer to store msg
+  char message_from_client[MAX_SIZE];
+  int read_bytes;
 
 
   /* 1) Create the socket, use `socket()`
@@ -79,11 +81,15 @@ int main() {
     printf("Connection accepted\n");
     printf("Client is from %s:%d\n\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 
-    /* Handle message, write current time to client */
-    ticks = time(NULL);
-    snprintf(buf, sizeof(buf), "%.24s\r\n", ctime(&ticks));
+    // get message from client
+    read_bytes = read(cli_fd, message_from_client, sizeof(message_from_client));
+    if (read_bytes < 0) {
+        perror("Read failed");
+        exit(1);
+    }
 
-    write_bytes = write(cli_fd, buf, strlen(buf));
+    // return the same message to client
+    write_bytes = write(cli_fd, message_from_client, sizeof(message_from_client));
     if(write_bytes < 0) {
       perror("Write Failed");
       exit(1);
